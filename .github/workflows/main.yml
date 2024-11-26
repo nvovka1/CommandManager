@@ -1,0 +1,32 @@
+name: Build and Test .NET Project
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Setup .NET environment
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0 # Use the required version of .NET SDK
+
+      # Restore dependencies
+      - name: Restore dependencies
+        run: dotnet restore *.sln
+
+      # Build the project
+      - name: Build project
+        run: dotnet build *.sln --configuration Release --no-restore
