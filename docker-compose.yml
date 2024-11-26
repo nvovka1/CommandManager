@@ -1,0 +1,56 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+
+  nvovka.commandmanager.api:
+    image: ${DOCKER_REGISTRY-}nvovkacommandmanagerapi
+    build:
+      context: .
+      dockerfile: src/Nvovka.CommandManager.Api/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_URLS=http://+:5000
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - rabbitmq
+      - sqlserver
+    links:
+      - rabbitmq
+      - sqlserver
+
+  nvovka.commandmanager.worker:
+    image: ${DOCKER_REGISTRY-}nvovkacommandmanagerworker
+    build:
+      context: .
+      dockerfile: src/Nvovka.CommandManager.Worker/Dockerfile
+    depends_on:
+      - rabbitmq
+      - sqlserver
+    links:
+      - rabbitmq
+      - sqlserver
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=P@ssw0rd!!
+      - MSSQL_TLS_VERSION=1.2
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    networks:
+      default:
+       aliases:
+        - sqlserver
+
+volumes:
+  sql_data:
+    driver: local
