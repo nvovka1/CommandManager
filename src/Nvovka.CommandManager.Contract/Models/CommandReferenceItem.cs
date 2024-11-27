@@ -11,7 +11,7 @@ public class CommandReferenceItem : IEntity, IHasDateTime
     public int Id { get; set; }
 
     [ForeignKey("CommandItemId")]
-    public required int CommandItemId { get; set; }
+    public int CommandItemId { get; set; }
 
     public required string Description { get; set; }
 

@@ -18,9 +18,8 @@ public static class SeviceCollectionExtensions
 
     public static IBusRegistrationConfigurator RegisterConsumers(this IBusRegistrationConfigurator registretion)
     {
-        registretion.AddConsumer<CreateCommandConsumer>();
-        registretion.AddConsumer<UpdateCommandStatusConsumer>();
 
+        registretion.AddConsumersFromNamespaceContaining<CreateCommandConsumer>();
         return registretion;
     }
 
@@ -69,8 +68,15 @@ public static class SeviceCollectionExtensions
                 {
                     configurator.PrefetchCount = 1;
                     configurator.ConfigureConsumer<CreateCommandConsumer>(busRegContext);
-                    configurator.ConfigureConsumer<UpdateCommandStatusConsumer>(busRegContext);
+                    //configurator.ConfigureConsumer<UpdateCommandStatusConsumer>(busRegContext);
                 });
+
+                x.AddConfigureEndpointsCallback((name, cfg) =>
+                {
+                    cfg.UseMessageRetry(r => r.Immediate(2));
+                });
+
+                cfg.ConfigureEndpoints(busRegContext);
 
                 ////cfg.ReceiveEndpoint(commandBusOptions.AcceptedOrderQueue, configurator =>
                 ////{

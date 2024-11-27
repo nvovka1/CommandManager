@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestPlatform.TestHost;
 using Moq;
+using Nvovka.CommandManager.Api;
 using Nvovka.CommandManager.Worker.Consumers;
 using Nvovka.CommandManager.Worker.Extensions;
 
@@ -11,36 +12,39 @@ namespace Nvovka.CommandManager.Tests;
 
 public class TestServerFixture : IAsyncLifetime
 {
-    public WebApplicationFactory<Program> Factory { get; private set; }
+    public WebApplicationFactory<Startup> Factory { get; private set; }
     public HttpClient Client { get; private set; }
 
     public readonly InMemoryTestHarness TestHarness;
 
     public TestServerFixture()
     {
-        Factory = new WebApplicationFactory<Program>()
+        TestHarness = new InMemoryTestHarness();
+        Factory = new WebApplicationFactory<Startup>()
             .WithWebHostBuilder(builder =>
             {
                 builder.ConfigureServices(services =>
                 {
-                    services.AddMassTransitTestHarness(cfg =>
-                    {
-                        // cfg.AddDelayedMessageScheduler();
-
-                        cfg.RegisterConsumers();
-
-                        cfg.UsingRabbitMq((context, cfg) =>
+                    services.AddMassTransitTestHarness(
+                        x =>
                         {
-                            cfg.ConfigureEndpoints(context);
-                        });
+                            x.SetTestTimeouts(TimeSpan.FromSeconds(5), Timeout.InfiniteTimeSpan);
+                            x.UsingInMemory(
+                                (context, configurator) =>
+                                {
+                                    /////configurator.UseNewtonsoftJsonSerializer();
 
-                        cfg.UsingInMemory((context, cfg) =>
-                        {
-                            cfg.UseDelayedMessageScheduler();
+                                    configurator.ReceiveEndpoint(
+                                        "queue",
+                                        ep =>
+                                        {
+                                            ///////ep.RetryCommonExceptions();
 
-                            cfg.ConfigureEndpoints(context);
+                                            ep.ConfigureConsumers(context);
+                                        });
+                                });
+                            x.AddConsumer<CreateCommandConsumer>();
                         });
-                    });
 
                     this.ConfigureServices(services);
                 });
@@ -59,7 +63,7 @@ public class TestServerFixture : IAsyncLifetime
     {
         await TestHarness.Stop();
         TestHarness.Dispose();
-        Client.Dispose();
+       // Client.Dispose();
         Factory.Dispose();
 
     }
@@ -72,7 +76,7 @@ public class TestServerFixture : IAsyncLifetime
         services.AddTransient<IPublishEndpoint>(_ => TestHarness.Bus);
         services.AddSingleton(_ => Mock.Of<IBusDepot>());
         services.AddScoped<CreateCommandConsumer>();
-      //  services.AddMassTransitTestHarness();
+        //  services.AddMassTransitTestHarness();
         //// var mock = new mock<ireceiveendpointconfigurator>();
         ////// mock.setup(m => m.(it.isany<string>())).returns(testharness.baseaddress);
 

@@ -18,7 +18,7 @@ public class CommandItem : IHasDateTime, IEntity
 
     public CommandStatus Status { get; set; }
 
-    public virtual Collection<CommandReferenceItem>? CommandReferenceItems { get; set; }
+    public virtual List<CommandReferenceItem>? CommandReferenceItems { get; set; } = new List<CommandReferenceItem>();
 
     public DateTime CreatedDate { get; set; }
 

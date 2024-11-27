@@ -1,9 +1,9 @@
 ﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Nvovka.CommandManager.Commands.CommandHandler;
-using Nvovka.CommandManager.Contract.Messages;
 using Nvovka.CommandManager.Contract.Options;
 using Nvovka.CommandManager.Data;
+using Nvovka.CommandManager.Data.Repository;
 
 namespace Nvovka.CommandManager.Api;
 
@@ -19,6 +19,13 @@ public class Startup(IConfiguration configuration)
              options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
              sqlOptions => sqlOptions.EnableRetryOnFailure()));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        services.AddScoped<ICommandDupperRepository>(sp =>
+        {
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            return new CommandDupperRepository(connectionString!);
+        });
 
         services.AddMediatR(cf => cf.RegisterServicesFromAssembly(typeof(GetCommandHandler).Assembly));
 
@@ -41,23 +48,23 @@ public class Startup(IConfiguration configuration)
                 {
                     rabbitOptions.HostName += "/";
                 }
-
-                // Dynamically build URI for the endpoint
-                Uri commandMessageEndpointUri = new Uri("queue:nvovka-commands");
-
-                EndpointConvention.Map<ICreateCommandMessage>(commandMessageEndpointUri);
-                EndpointConvention.Map<IUpdateCommandStatusMessage>(commandMessageEndpointUri);
+               
             });
 
             x.AddConfigureEndpointsCallback((name, cfg) =>
             {
                 cfg.UseMessageRetry(r => r.Immediate(2));
             });
-
         });
 
-       // services.AddMassTransitHostedService();
+        // Dynamically build URI for the endpoint
+        ////Uri commandMessageEndpointUri = new Uri("exchange:nvovka-commands");
 
-      //  EndpointConvention.Map<ICreateCommandMessage>(rfpEmailCommandBusUri);
+        ////EndpointConvention.Map<ICreateCommandMessage>(commandMessageEndpointUri);
+        ////EndpointConvention.Map<IUpdateCommandStatusMessage>(commandMessageEndpointUri);
+
+        //services.AddMassTransitHostedService();
+
+        //  EndpointConvention.Map<ICreateCommandMessage>(rfpEmailCommandBusUri);
     }
 }

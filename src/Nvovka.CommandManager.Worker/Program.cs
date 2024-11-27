@@ -1,14 +1,4 @@
 using Nvovka.CommandManager.Worker;
-
-////var builder = Host.CreateApplicationBuilder(args);
-////builder.Services.AddHostedService<Worker>();
-
-////var host = builder.Build();
-////var startup = new Startup(hostContext.Configuration);
-////host.Run();
-
-
-
 public class Program
 {
     public static void Main(string[] args)

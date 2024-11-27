@@ -31,9 +31,6 @@ namespace Nvovka.CommandManager.Api.Controllers
                 return BadRequest("This command already exist");
             }
 
-           //var sendEndpoint = await _bus.GetSendEndpoint(new Uri("queue:nvovka-commands"));
-           // await sendEndpoint.Send<ICreateCommandMessage>(new CreateCommandMessage(message.Name, message.Description), cts);
-
             await _bus.Publish<ICreateCommandMessage>(new CreateCommandMessage(message.Name, message.Description), cts);
             return Accepted();
         }
@@ -47,7 +44,7 @@ namespace Nvovka.CommandManager.Api.Controllers
                 return BadRequest("This command not exist");
             }
 
-            await _bus.Send<IUpdateCommandStatusMessage>(new UpdateCommandStatusMessage(message.Id, message.Status), cts);
+            await _bus.Publish<IUpdateCommandStatusMessage>(new UpdateCommandStatusMessage(message.Id, message.Status), cts);
             return Accepted();
         }
 
