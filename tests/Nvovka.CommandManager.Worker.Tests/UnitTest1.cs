@@ -1,17 +1,30 @@
 using MassTransit;
 using MassTransit.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Nvovka.CommandManager.Contract.Messages;
+using Nvovka.CommandManager.Contract.Models;
 using Nvovka.CommandManager.Data;
+using Nvovka.CommandManager.Data.Repository;
 using Nvovka.CommandManager.Worker.Consumers;
 
 namespace Nvovka.CommandManager.Worker.Tests
 {
-    public class UnitTest1
+    public class UnitTest1 : TestsBase
     {
+        public UnitTest1()
+        {
+            var mockRepository = new Mock<IGenericRepository<CommandItem>>();
+            UnitOfWorkMock
+       .Setup(service => service.GetRepository<CommandItem>())
+       .Returns(mockRepository.Object);
+        }
+
+
         [Fact]
         public async Task Should_Consume_MyMessage()
         {
+
             // Arrange
             await using var provider = new ServiceCollection()
                    .AddMassTransitTestHarness(static x =>
@@ -47,8 +60,8 @@ namespace Nvovka.CommandManager.Worker.Tests
                 // Act
                 await harness.Bus.Publish<ICreateCommandMessage>(new CreateCommandMessage("Test", "Test"));
 
-                //   var consumer = harness.GetConsumerHarness<CreateCommandConsumer>();
-                // var consumer = harness.Consumer<CreateCommandConsumer>();
+                // var consumer = harness.GetConsumerHarness<CreateCommandConsumer>(qu);
+                //  var consumer = harness.Consumer<CreateCommandConsumer>(queueName: harness.InputQueueName);
 
                 // Assert
                 Assert.True(await harness.Consumed.Any<ICreateCommandMessage>());
@@ -114,6 +127,29 @@ namespace Nvovka.CommandManager.Worker.Tests
 
                 await provider.DisposeAsync();
             }
+        }
+
+        [Fact]
+        public async Task Try()
+        {
+            // Arrenge
+            string messageName = "Test";
+            (InMemoryTestHarness harness, ConsumerTestHarness<IConsumer<ICreateCommandMessage>> consumer) =
+          GetDefaultHarnessAndConsumer<ICreateCommandMessage>();
+
+            await using InMemoryTestHarnessScope harnessScope = await InMemoryTestHarnessScope.StartAsync(harness);
+
+            // Act
+            await harnessScope.Harness.Bus.Publish<ICreateCommandMessage>(new CreateCommandMessage(messageName, "Test"));
+
+            // Assert
+            IReceivedMessage<ICreateCommandMessage> receivedMessage = await consumer
+                .Consumed
+                .SelectAsync<ICreateCommandMessage>(x => x.Context.Message.Name == messageName)
+                .FirstOrDefault();
+
+            Assert.NotNull(receivedMessage);
+            UnitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
         }
     }
 }

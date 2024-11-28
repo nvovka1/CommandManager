@@ -9,8 +9,10 @@ using Nvovka.CommandManager.Data.Repository;
 
 namespace Nvovka.CommandManager.Data;
 
-public interface IUnitOfWork
+public interface IUnitOfWork: IDisposable
 {
     IGenericRepository<T> GetRepository<T>() where T : class, IEntity;
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    public AppDbContext appDbContext();
 }

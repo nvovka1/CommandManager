@@ -17,7 +17,6 @@ public abstract class TestsBase
     {
         var services = new ServiceCollection();
 
-        // ReSharper disable once VirtualMemberCallInConstructor
         ConfigureServices(services);
 
         _serviceProvider = services.BuildServiceProvider();
@@ -26,7 +25,9 @@ public abstract class TestsBase
     protected virtual void ConfigureServices(IServiceCollection services)
     {
         services.AddScoped<CreateCommandConsumer>();
-      //  services.AddScoped<UpdateCommandStatusConsumer>();
+
+        services.AddScoped<IConsumer<ICreateCommandMessage>>(
+           provider => provider.GetRequiredService<CreateCommandConsumer>());
         services.AddSingleton(UnitOfWorkMock.Object);
     }
 
@@ -35,24 +36,17 @@ public abstract class TestsBase
         return _serviceProvider.GetService<T>();
     }
 
-    ////protected (InMemoryTestHarness Harness, ConsumerTestHarness<IConsumer<TMessage>> Consumer) GetDefaultHarnessAndConsumer<TMessage>()
-    ////  where TMessage : class
-    ////{
-    ////    var harness = new InMemoryTestHarness
-    ////    {
-    ////        TestTimeout = DefaultHarnessTestTimeout,
-    ////        TestInactivityTimeout = Timeout.InfiniteTimeSpan
-    ////    };
+    protected (InMemoryTestHarness Harness, ConsumerTestHarness<IConsumer<TMessage>> Consumer) GetDefaultHarnessAndConsumer<TMessage>()
+      where TMessage : class
+    {
+        var harness = new InMemoryTestHarness
+        {
+            TestTimeout = DefaultHarnessTestTimeout,
+            TestInactivityTimeout = Timeout.InfiniteTimeSpan
+        };
 
-    ////    harness.OnConfigureInMemoryBus += configurator =>
-    ////    {
-    ////        //configurator.UseNewtonsoftJsonSerializer();
-    ////        EndpointConvention.Map<ICreateCommandMessage>(harness.InputQueueAddress);
-    ////    };
+        var cons = harness.Consumer<IConsumer<TMessage>>(Resolve<IConsumer<TMessage>>, queueName: "queue");//harness.InputQueueName);
 
-    ////   var cons = harness.Consumer<IConsumer<TMessage>>(Resolve<IConsumer<TMessage>>);
-    ////    //ConsumerTestHarness<IConsumer<TMessage>> consumer = harness.Consumer(Resolve<IConsumer<TMessage>>);
-
-    ////    return (harness, cons);
-    ////}
+        return (harness, cons);
+    }
 }

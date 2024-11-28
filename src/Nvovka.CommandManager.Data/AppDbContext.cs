@@ -21,6 +21,11 @@ public class AppDbContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        modelBuilder.Entity<CommandItem>()
+       .HasMany(ci => ci.CommandReferenceItems)
+       .WithOne()
+       .HasForeignKey(cri => cri.CommandItemId);
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

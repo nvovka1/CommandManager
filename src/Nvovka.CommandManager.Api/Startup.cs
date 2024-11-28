@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Nvovka.CommandManager.Commands.CommandHandler;
 using Nvovka.CommandManager.Contract.Options;
+using Nvovka.CommandManager.Contract.Servcies;
 using Nvovka.CommandManager.Data;
 using Nvovka.CommandManager.Data.Repository;
 
@@ -19,6 +20,7 @@ public class Startup(IConfiguration configuration)
              options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
              sqlOptions => sqlOptions.EnableRetryOnFailure()));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddSingleton<IMassTransitBusUriGenerator, MassTransitBusUriGenerator>();
 
         services.AddScoped<ICommandDupperRepository>(sp =>
         {

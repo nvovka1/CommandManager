@@ -1,4 +1,5 @@
-﻿namespace Nvovka.CommandManager.Contract.Options;
+﻿
+namespace Nvovka.CommandManager.Contract.Options;
 
 public class RabbitMqConfigOptions
 {
@@ -9,4 +10,5 @@ public class RabbitMqConfigOptions
     public string UserName { get; set; } = "guest";
     public string Password { get; set; } = "guest";
     public bool BatchPublish { get; set; }
+    public Uri Url { get; internal set; }
 }

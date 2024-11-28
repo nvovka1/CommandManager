@@ -35,4 +35,9 @@ public class UnitOfWork : IUnitOfWork, IDisposable
     {
         _context.Dispose();
     }
+
+    AppDbContext IUnitOfWork.appDbContext()
+    {
+        return _context;
+    }
 }
