@@ -74,60 +74,60 @@ namespace Nvovka.CommandManager.Worker.Tests
         //    }
         //}
 
-        //[Fact]
-        //public async Task MailDataBatchEventConsumer_DoesNotThrow()
-        //{
-        //    var provider = new ServiceCollection()
-        //         .AddTransient<IUnitOfWork, UnitOfWork>()
-        //         .AddScoped<CreateCommandConsumer>()
-        //        .AddMassTransitTestHarness(cfg =>
-        //        {
-        //            cfg.AddConsumer<CreateCommandConsumer>();
+        [Fact]
+        public async Task MailDataBatchEventConsumer_DoesNotThrow()
+        {
+            var provider = new ServiceCollection()
+                 .AddTransient<IUnitOfWork, UnitOfWork>()
+                 .AddScoped<CreateCommandConsumer>()
+                .AddMassTransitTestHarness(cfg =>
+                {
+                    cfg.AddConsumer<CreateCommandConsumer>();
 
-        //            EndpointConvention.Map<ICreateCommandMessage>(new Uri("exchange:queue-test"));
-        //            // cfg.AddConsumer<CreateCommandConsumer>();
-        //            cfg.AddConsumerTestHarness<CreateCommandConsumer>();
+                    EndpointConvention.Map<ICreateCommandMessage>(new Uri("exchange:queue-test"));
+                    // cfg.AddConsumer<CreateCommandConsumer>();
+                    cfg.AddConsumerTestHarness<CreateCommandConsumer>();
 
-        //            cfg.UsingInMemory(
-        //                   (context, configurator) =>
-        //                   {
-        //                       configurator.ReceiveEndpoint(
-        //                       "queue-test",
-        //                       ep =>
-        //                       {
-        //                           ep.ConfigureConsumer<CreateCommandConsumer>(context);
+                    cfg.UsingInMemory(
+                           (context, configurator) =>
+                           {
+                               configurator.ReceiveEndpoint(
+                               "queue-test",
+                               ep =>
+                               {
+                                   ep.ConfigureConsumer<CreateCommandConsumer>(context);
 
-        //                           ep.ConfigureConsumers(context);
-        //                       });
-        //                   });
-        //        })
-        //        .BuildServiceProvider(true);
+                                   ep.ConfigureConsumers(context);
+                               });
+                           });
+                })
+                .BuildServiceProvider(true);
 
-        //    await provider.StartTestHarness();
+            await provider.StartTestHarness();
 
-        //    var harness = provider.GetRequiredService<InMemoryTestHarness>();
+            var harness = provider.GetRequiredService<InMemoryTestHarness>();
 
-        //    await harness.Start();
-        //    try
-        //    {
-        //        var bus = provider.GetRequiredService<IBus>();
-        //        await bus.Publish<ICreateCommandMessage>(new CreateCommandMessage("Test", "Test"));
-        //        //  IRequestClient<IMailData> client = bus.CreateRequestClient<IMailData>();
+            await harness.Start();
+            try
+            {
+                var bus = provider.GetRequiredService<IBus>();
+                await bus.Publish<ICreateCommandMessage>(new CreateCommandMessage("Test", "Test"));
+                //  IRequestClient<IMailData> client = bus.CreateRequestClient<IMailData>();
 
-        //        //await client.GetResponse<IMailDataResponse>(new MailData());
+                //await client.GetResponse<IMailDataResponse>(new MailData());
 
-        //        //Assert.That(await harness.Consumed.Any<IMailData>());
+                //Assert.That(await harness.Consumed.Any<IMailData>());
 
-        //        var consumerHarness = provider.GetRequiredService<IConsumerTestHarness<CreateCommandConsumer>>();
-        //        Assert.True(await consumerHarness.Consumed.Any<ICreateCommandMessage>());
-        //    }
-        //    finally
-        //    {
-        //        await harness.Stop();
+                var consumerHarness = provider.GetRequiredService<IConsumerTestHarness<CreateCommandConsumer>>();
+                Assert.True(await consumerHarness.Consumed.Any<ICreateCommandMessage>());
+            }
+            finally
+            {
+                await harness.Stop();
 
-        //        await provider.DisposeAsync();
-        //    }
-        //}
+                await provider.DisposeAsync();
+            }
+        }
 
         [Fact]
         public async Task Should_Consume_MyMessage()
