@@ -30,3 +30,7 @@ jobs:
       # Build the project
       - name: Build project
         run: dotnet build *.sln --configuration Release --no-restore
+
+      # Run tests
+      - name: Run tests
+        run: dotnet test *.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
