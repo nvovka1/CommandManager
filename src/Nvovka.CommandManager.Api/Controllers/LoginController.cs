@@ -1,7 +1,7 @@
-﻿using Grpc.Net.Client;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Nvovka.CommandManager.Api.Dto;
-using Nvovka.CommandManager.Authentication;
+using Nvovka.CommandManager.Api.Services;
+
 
 namespace Nvovka.CommandManager.Api.Controllers
 {
@@ -9,20 +9,17 @@ namespace Nvovka.CommandManager.Api.Controllers
     [ApiController]
     public class LoginController : ControllerBase
     {
+        private IGrpcLoginService _grpcLoginService;
+        public LoginController(IGrpcLoginService grpcLoginService)
+        {
+            _grpcLoginService = grpcLoginService;
+        }
+
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] LoginDto value)
         {
-            using var channel = GrpcChannel.ForAddress("http://nvovka.commandmanager.authentication:5001");
-
-            var client = new UserLoginService.UserLoginServiceClient(channel);
-
-            var reply = await client.LoginAsync(new LoginRequest
-            {
-                Username = value.UserName,
-                Password = value.Password
-            });
-
-            return Ok(reply);
+            var logindata = await _grpcLoginService.SendLoginAsync(value);
+            return Ok(logindata);
         }
     }
 }
