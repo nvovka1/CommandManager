@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using Nvovka.CommandManager.Api;
 using Nvovka.CommandManager.Data;
 

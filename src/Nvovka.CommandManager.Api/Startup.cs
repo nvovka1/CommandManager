@@ -1,5 +1,9 @@
 ﻿using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Nvovka.CommandManager.Commands.CommandHandler;
 using Nvovka.CommandManager.Contract.Options;
 using Nvovka.CommandManager.Contract.Servcies;
@@ -12,6 +16,51 @@ public class Startup(IConfiguration configuration)
 {
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddSwaggerGen(options =>
+        {
+            // Add JWT Bearer Security Definition
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "Bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Enter 'Bearer' [space] and then your token in the text input below.\n\nExample: 'Bearer abc123'"
+            });
+
+            // Add Security Requirement
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {} // No specific scopes
+        }
+    });
+        });
+        services.AddAuthorization();
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(x =>
+            {
+                x.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    IssuerSigningKey = new SymmetricSecurityKey("MySecretKeyForMyApplicationVeryLong"u8.ToArray()),
+                    ValidIssuer = "http://nvovka.com",
+                    ValidAudience = "http://localhost:5000",
+                    ValidateIssuerSigningKey = true,
+                    ValidateLifetime = true,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                };
+            });
+
         services
              .AddOptions()
              .Configure<RabbitMqConfigOptions>(configuration.GetSection(RabbitMqConfigOptions.SectionName));

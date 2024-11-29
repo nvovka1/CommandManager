@@ -1,4 +1,5 @@
 ﻿using MassTransit;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Nvovka.CommandManager.Api.Dto;
 using Nvovka.CommandManager.Commands.Command;
@@ -11,6 +12,7 @@ namespace Nvovka.CommandManager.Api.Controllers
 {
     [Route("api/v1/commands")]
     [ApiController]
+    [Authorize]
     public class CommandsController : ControllerBase
     {
         private readonly IMediator _mediator;

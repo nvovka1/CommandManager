@@ -5,7 +5,8 @@
       "commandVersion": "1.0",
       "serviceActions": {
         "nvovka.commandmanager.api": "StartDebugging",
-        "nvovka.commandmanager.worker": "StartDebugging"
+        "nvovka.commandmanager.worker": "StartDebugging",
+        "nvovka.commandmanager.authentication": "StartDebugging"
       }
     }
   }

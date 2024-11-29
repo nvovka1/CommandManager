@@ -51,6 +51,17 @@ services:
        aliases:
         - sqlserver
 
+  nvovka.commandmanager.authentication:
+    image: ${DOCKER_REGISTRY-}nvovkacommandmanagerauthentication
+    build:
+      context: .
+      dockerfile: src/Nvovka.CommandManager.Authentication/Dockerfile
+    ports:
+      - "5001:5001"
+    environment:
+      - ASPNETCORE_URLS=http://+:5001
+      - ASPNETCORE_ENVIRONMENT=Development
+
 volumes:
   sql_data:
     driver: local
